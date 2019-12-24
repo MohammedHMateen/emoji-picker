@@ -7,5 +7,8 @@ A quick and easy emoji keyboard for everyone
 ## Running
 The main keyboard can be run simply with:
 ```
+git submodule init
+git submodule update
+
 python3 main.py
 ```

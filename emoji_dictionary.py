@@ -78,7 +78,7 @@ class EmojiDictionary:
 
         path = os.path.join(
             os.path.dirname(__file__),
-            'emojitwo/' +
+            'emojitwo/svg/' +
             emoji + '.svg')
 
         if os.access(path, os.F_OK):

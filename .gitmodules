@@ -1,0 +1,3 @@
+[submodule "emojitwo"]
+	path = emojitwo
+	url = https://github.com/EmojiTwo/emojitwo.git
