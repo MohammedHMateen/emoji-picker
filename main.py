@@ -1,12 +1,12 @@
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.graphics.svg import Svg
 from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.stacklayout import StackLayout
 from kivy.uix.button import Button
+from kivy.uix.stacklayout import StackLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.scatter import Scatter
+from kivy.uix.image import AsyncImage
 
 from emoji_dictionary import EmojiDictionary
 
@@ -45,23 +45,8 @@ class EmojiGrid(StackLayout):
     def on_items(self, *args):
         self.clear_widgets()
 
-        for item in self.items[:10]:
+        for item in self.items:
             self.add_widget(EmojiButton(item))
-
-
-class SvgWidget(Scatter):
-
-    def __init__(self, filename, **kwargs):
-        super(SvgWidget, self).__init__(**kwargs)
-
-        self.do_rotation = False
-        self.do_scale = False
-        self.do_translation = False
-
-        with self.canvas:
-            svg = Svg(filename, bezier_points=128, circle_points=128)
-
-        self.size = svg.width, svg.height
 
 
 class EmojiButton(Button):
@@ -72,15 +57,15 @@ class EmojiButton(Button):
     def __init__(self, emoji, **kwargs):
         super(EmojiButton, self).__init__(**kwargs)
 
+        self.image = AsyncImage(source = emoji['path'])
+        self.add_widget(self.image)
+
+        self.bind(size=self._update_image, pos=self._update_image)
         self.size = 50, 50
-        self.bind(pos=self._update_svg)
 
-        self.svg = SvgWidget(emoji['path'], size_hint = (None, None))
-        self.add_widget(self.svg)
-        self.svg.scale = 0.5
-
-    def _update_svg(self, instance, value):
-        self.svg.center = instance.x + 25, instance.y + 25
+    def _update_image(self, instance, value):
+        self.image.center = instance.center
+        self.image.size = 40, 40
 
 
 class EmojiKeyboardApp(App):

@@ -78,8 +78,8 @@ class EmojiDictionary:
 
         path = os.path.join(
             os.path.dirname(__file__),
-            'emojitwo/svg/' +
-            emoji + '.svg')
+            'emojitwo/png/' +
+            emoji + '.png')
 
         if os.access(path, os.F_OK):
           emojis.append({
