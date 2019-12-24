@@ -39,7 +39,10 @@ class EmojiDictionary:
 
       return matches
     else:
-      return self.emoji[:50]
+      if max_items:
+        return self.emoji[:max_items]
+      else:
+        return self.emoji
 
 
   def __load(self):

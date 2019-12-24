@@ -13,12 +13,17 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scatter import Scatter
 from kivy.uix.image import AsyncImage
 
+MAX_FILTERED_RESULTS = 28
+WINDOW_WIDTH = 410
+WINDOW_HEIGH = 280
+
+# TODO: Convert into preferences
+CLOSE_ON_SELECTION = True
 
 class EmojiKeyboard(BoxLayout):
 
-    search_filter = ''
     orientation = 'vertical'
-    spacing = 20
+    spacing = 10
 
     def __init__(self, **kwargs):
         super(EmojiKeyboard, self).__init__(**kwargs)
@@ -35,13 +40,13 @@ class EmojiKeyboard(BoxLayout):
 
     def on_filter_text(self, instance, value):
         self.emoji_grid.items = self.emoji_dictionary.search(
-            value, max_items=50)
+            value, max_items=MAX_FILTERED_RESULTS)
 
 
 class EmojiGrid(StackLayout):
 
     items = ListProperty([])
-    spacing = (20, 20)
+    spacing = (10, 10)
 
     def __init__(self, **kwargs):
         super(EmojiGrid, self).__init__(**kwargs)
@@ -82,7 +87,9 @@ class EmojiButton(Button):
             emoji_character = chr(int(emoji_code, 16))
 
         Clipboard.copy(emoji_character)
-        exit()
+
+        if CLOSE_ON_SELECTION:
+            exit()
 
 
 class EmojiKeyboardApp(App):
@@ -92,5 +99,5 @@ class EmojiKeyboardApp(App):
 
 
 if __name__ == '__main__':
-    Window.size = (480, 360)
+    Window.size = (WINDOW_WIDTH, WINDOW_HEIGH)
     EmojiKeyboardApp().run()
