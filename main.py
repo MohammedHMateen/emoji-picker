@@ -1,4 +1,9 @@
+#!/usr/bin/env python3
+
+from emoji_dictionary import EmojiDictionary
+
 from kivy.app import App
+from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -8,7 +13,6 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scatter import Scatter
 from kivy.uix.image import AsyncImage
 
-from emoji_dictionary import EmojiDictionary
 
 class EmojiKeyboard(BoxLayout):
 
@@ -22,16 +26,16 @@ class EmojiKeyboard(BoxLayout):
         self.emoji_dictionary = EmojiDictionary()
 
         self.emoji_grid = EmojiGrid()
-        self.filterInput = TextInput(multiline=False, size_hint_y=None, height=50)
+        self.filterInput = TextInput(multiline=False, size_hint_y=None, height=40)
         self.filterInput.focus = True
         self.filterInput.bind(text=self.on_filter_text)
 
         self.add_widget(self.filterInput)
         self.add_widget(self.emoji_grid)
 
-
     def on_filter_text(self, instance, value):
-        self.emoji_grid.items = self.emoji_dictionary.search(value, max_items=50)
+        self.emoji_grid.items = self.emoji_dictionary.search(
+            value, max_items=50)
 
 
 class EmojiGrid(StackLayout):
@@ -56,8 +60,9 @@ class EmojiButton(Button):
 
     def __init__(self, emoji, **kwargs):
         super(EmojiButton, self).__init__(**kwargs)
+        self.emoji = emoji
 
-        self.image = AsyncImage(source = emoji['path'])
+        self.image = AsyncImage(source=emoji['path'])
         self.add_widget(self.image)
 
         self.bind(size=self._update_image, pos=self._update_image)
@@ -66,6 +71,18 @@ class EmojiButton(Button):
     def _update_image(self, instance, value):
         self.image.center = instance.center
         self.image.size = 40, 40
+
+    def on_release(self):
+        emoji_code = self.emoji['emoji']
+
+        if '-' in emoji_code:
+            sequence = emoji_code.split('-')
+            emoji_character = chr(int(sequence[0], 16)) + chr(int(sequence[1], 16))
+        else:
+            emoji_character = chr(int(emoji_code, 16))
+
+        Clipboard.copy(emoji_character)
+        exit()
 
 
 class EmojiKeyboardApp(App):
