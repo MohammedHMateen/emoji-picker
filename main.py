@@ -22,7 +22,8 @@ MAX_FILTERED_RESULTS = 28
 
 # TODO: Convert into preferences
 CLOSE_ON_SELECTION = True
-
+CYCLE_WITH_ARROW_KEYS = True
+ICONS_PER_ROW = 7
 
 class EmojiKeyboard(BoxLayout):
 
@@ -69,6 +70,19 @@ class EmojiSearchInput(TextInput):
         self.hover_previous_emoji = hover_previous_emoji
 
     def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        if CYCLE_WITH_ARROW_KEYS:
+            if keycode[1] == 'up':
+                self.hover_previous_emoji(row=True)
+            if keycode[1] == 'down':
+                self.hover_next_emoji(row=True)
+                return True
+            if keycode[1] == 'left':
+                self.hover_previous_emoji()
+                return True
+            if keycode[1] == 'right':
+                self.hover_next_emoji()
+                return True
+
         if keycode[1] == 'tab':
             if 'shift' in modifiers:
                 self.hover_previous_emoji()
@@ -76,10 +90,11 @@ class EmojiSearchInput(TextInput):
             else:
                 self.hover_next_emoji()
                 return True
+
         if keycode[1] == 'escape':
             quit
-        else:
-            super().keyboard_on_key_down(window, keycode, text, modifiers)
+
+        super().keyboard_on_key_down(window, keycode, text, modifiers)
 
 
 class EmojiGrid(StackLayout):
@@ -115,11 +130,17 @@ class EmojiGrid(StackLayout):
         self.hover_index = index
         self.widgets[index].hover()
 
-    def hover_next_emoji(self):
-        self.hover_emoji((self.hover_index + 1) % len(self.widgets))
+    def hover_next_emoji(self, row=False):
+        if row:
+            self.hover_emoji((self.hover_index + ICONS_PER_ROW) % len(self.widgets))
+        else:
+            self.hover_emoji((self.hover_index + 1) % len(self.widgets))
 
-    def hover_previous_emoji(self):
-        self.hover_emoji((self.hover_index - 1) % len(self.widgets))
+    def hover_previous_emoji(self, row=False):
+        if row:
+            self.hover_emoji((self.hover_index - ICONS_PER_ROW) % len(self.widgets))
+        else:
+            self.hover_emoji((self.hover_index - 1) % len(self.widgets))
 
 
 class EmojiButton(Button):
