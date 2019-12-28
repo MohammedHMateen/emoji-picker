@@ -48,6 +48,7 @@ class EmojiKeyboard(BoxLayout):
         self.add_widget(self.filterInput)
         self.add_widget(self.emoji_grid)
 
+
     def on_filter_text(self, instance, value):
         self.emoji_grid.items = self.emoji_dictionary.search(
             value, max_items=MAX_FILTERED_RESULTS)
@@ -187,6 +188,7 @@ class EmojiButton(Button):
 
 
 class EmojiKeyboardApp(App):
+    title = 'Emoji Picker'
 
     def build(self):
         return EmojiKeyboard()
