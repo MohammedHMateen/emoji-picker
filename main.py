@@ -13,12 +13,16 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scatter import Scatter
 from kivy.uix.image import AsyncImage
 
-MAX_FILTERED_RESULTS = 28
 WINDOW_WIDTH = 420
 WINDOW_HEIGH = 280
+BACKGROUND_COLOR = 0.15, 0.15, 0.15, 1
+
+# TODO: Make a scrolling selection and use categories instead of limiting
+MAX_FILTERED_RESULTS = 28
 
 # TODO: Convert into preferences
 CLOSE_ON_SELECTION = True
+
 
 class EmojiKeyboard(BoxLayout):
 
@@ -32,21 +36,50 @@ class EmojiKeyboard(BoxLayout):
         self.emoji_dictionary = EmojiDictionary()
 
         self.emoji_grid = EmojiGrid()
-        self.filterInput = TextInput(multiline=False, size_hint_y=None, height=35)
+        self.filterInput = EmojiSearchInput(
+            self.emoji_grid.hover_next_emoji,
+            self.emoji_grid.hover_previous_emoji)
         self.filterInput.focus = True
-        self.filterInput.font_size = 18
-        self.filterInput.bind(text=self.on_filter_text, on_text_validate=self.on_enter)
+        self.filterInput.bind(
+            text=self.on_filter_text,
+            on_text_validate=self.on_enter)
 
         self.add_widget(self.filterInput)
         self.add_widget(self.emoji_grid)
 
     def on_filter_text(self, instance, value):
-        print(value)
         self.emoji_grid.items = self.emoji_dictionary.search(
             value, max_items=MAX_FILTERED_RESULTS)
 
     def on_enter(self, instance):
         self.emoji_grid.select_hovered_emoji()
+
+
+class EmojiSearchInput(TextInput):
+    multiline = False
+
+    def __init__(self, hover_next_emoji, hover_previous_emoji, **kwargs):
+        super(EmojiSearchInput, self).__init__(**kwargs)
+
+        self.height = 35
+        self.font_size = 18
+        self.size_hint_y = None
+
+        self.hover_next_emoji = hover_next_emoji
+        self.hover_previous_emoji = hover_previous_emoji
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        if keycode[1] == 'tab':
+            if 'shift' in modifiers:
+                self.hover_previous_emoji()
+                return True
+            else:
+                self.hover_next_emoji()
+                return True
+        if keycode[1] == 'escape':
+            quit
+        else:
+            super().keyboard_on_key_down(window, keycode, text, modifiers)
 
 
 class EmojiGrid(StackLayout):
@@ -57,21 +90,36 @@ class EmojiGrid(StackLayout):
     def __init__(self, **kwargs):
         super(EmojiGrid, self).__init__(**kwargs)
 
+        self.widgets = []
+        self.hover_index = 0
+
     def on_items(self, *args):
         self.clear_widgets()
 
         def item_to_widget(item):
             return EmojiButton(item)
 
-        widgets = list(map(item_to_widget, self.items))
-        for widget in widgets:
+        self.widgets = list(map(item_to_widget, self.items))
+        for widget in self.widgets:
             self.add_widget(widget)
-        if len(widgets) > 0:
-            widgets[0].hover()
-            self.selected_widget = widgets[0]
+        if len(self.widgets) > 0:
+            self.hover_emoji(0)
 
     def select_hovered_emoji(self):
-        self.selected_widget.on_release()
+        self.widgets[self.hover_index].on_release()
+
+    def hover_emoji(self, index):
+        for widget in self.widgets:
+            widget.unhover()
+
+        self.hover_index = index
+        self.widgets[index].hover()
+
+    def hover_next_emoji(self):
+        self.hover_emoji((self.hover_index + 1) % len(self.widgets))
+
+    def hover_previous_emoji(self):
+        self.hover_emoji((self.hover_index - 1) % len(self.widgets))
 
 
 class EmojiButton(Button):
@@ -98,12 +146,16 @@ class EmojiButton(Button):
     def hover(self):
         self.background_color = 1, 1, 1, 0.5
 
+    def unhover(self):
+        self.background_color = 0, 0, 0, 0
+
     def on_release(self):
         emoji_code = self.emoji['emoji']
 
         if '-' in emoji_code:
             sequence = emoji_code.split('-')
-            emoji_character = chr(int(sequence[0], 16)) + chr(int(sequence[1], 16))
+            emoji_character = chr(
+                int(sequence[0], 16)) + chr(int(sequence[1], 16))
         else:
             emoji_character = chr(int(emoji_code, 16))
 
@@ -121,5 +173,5 @@ class EmojiKeyboardApp(App):
 
 if __name__ == '__main__':
     Window.size = (WINDOW_WIDTH, WINDOW_HEIGH)
-    Window.clearcolor = 0.15, 0.15, 0.15, 1
+    Window.clearcolor = BACKGROUND_COLOR
     EmojiKeyboardApp().run()
